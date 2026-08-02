@@ -1,0 +1,13 @@
+# secrets
+.env
+
+# runtime artifacts
+.venv/
+chroma_db/
+data/
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
