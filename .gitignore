@@ -8,6 +8,9 @@ data/
 __pycache__/
 *.pyc
 
+# cloudflare local dev
+.wrangler/
+
 # OS
 .DS_Store
 Thumbs.db
