@@ -25,10 +25,31 @@ logger = logging.getLogger(__name__)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHROMA_DIR = os.path.join(PROJECT_ROOT, "chroma_db")
 EMBEDDING_MODEL_PATH = r"E:\models\bge-small-zh-v1.5"
+# 云端(Linux)无本地模型时的 fallback：从 ModelScope 下载到项目缓存
+EMBEDDING_MODEL_FALLBACK = "AI-ModelScope/bge-small-zh-v1.5"
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 100
 
 _model: SentenceTransformer | None = None
+
+
+def _resolve_model_path() -> str:
+    """返回可用的模型路径：本地优先，云端 fallback 到 ModelScope 下载。"""
+    if os.path.isdir(EMBEDDING_MODEL_PATH):
+        return EMBEDDING_MODEL_PATH
+    # 云端/其他机器：尝试已下载缓存，否则从 ModelScope 拉取（hf 国内不可达）
+    cached = os.path.join(PROJECT_ROOT, "models", "bge-small-zh-v1.5")
+    if os.path.isdir(cached):
+        return cached
+    try:
+        from modelscope import snapshot_download
+
+        logger.info("本地模型不存在，从 ModelScope 下载 %s ...", EMBEDDING_MODEL_FALLBACK)
+        path = snapshot_download(EMBEDDING_MODEL_FALLBACK, cache_dir=os.path.join(PROJECT_ROOT, "models"))
+        return path
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("ModelScope 下载失败，回退本地路径（若也不存在会报错）: %s", exc)
+        return EMBEDDING_MODEL_PATH
 
 
 def _get_model() -> SentenceTransformer:
@@ -36,7 +57,7 @@ def _get_model() -> SentenceTransformer:
     global _model
     if _model is None:
         os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
-        _model = SentenceTransformer(EMBEDDING_MODEL_PATH)
+        _model = SentenceTransformer(_resolve_model_path())
         logger.info("embedding 模型已加载: %s", EMBEDDING_MODEL_PATH)
     return _model
 
