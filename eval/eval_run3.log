@@ -1,0 +1,27 @@
+Loading weights:   0%|          | 0/71 [00:00<?, ?it/s]Loading weights: 100%|██████████| 71/71 [00:00<00:00, 2545.24it/s]
+[PASS] Q01 (answer         ) answered    src=5 cited=True 11.1s | 根据现有资料，图增强RAG方法的最新进展主要体现在三个方面：一是**NGM-RAG**通过神经图匹配技术，在性能上超越了传统NaiveRAG
+[PASS] Q02 (answer         ) answered    src=5 cited=True 2.3s | 根据资料[1]，ConMem 的标题为《ConMem: Contribution-Aware Memory for Long-Horizon
+[PASS] Q03 (answer         ) answered    src=5 cited=True 4.3s | 根据提供的论文资料，RAG 在医疗/临床领域主要有以下应用：  1. **临床检索增强生成（RAG）系统**：用于回答临床问题，但存在“欺骗
+[PASS] Q04 (answer         ) answered    src=5 cited=True 2.7s | 根据资料，RAG 系统在多约束查询上的主要挑战是难以满足复杂的多约束查询，容易导致约束违反、事实不一致或幻觉 [2]。具体表现为，传统 RA
+[PASS] Q05 (answer         ) answered    src=5 cited=True 3.5s | 根据提供的资料，关于RAG系统中“记忆机制”的直接描述较少，但可归纳出两种相关设计：  1. **时间感知记忆**：Chronofy 提出三
+[PASS] Q06 (answer         ) answered    src=5 cited=True 3.3s | 根据现有资料，RAG 安全防护已出现分层防御框架，如 RAGuard 针对数据投毒提出多层防护机制 [1]。在实体归因层面，研究指出部署系统
+[PASS] Q07 (answer         ) answered    src=5 cited=True 3.0s | 根据资料，RAG 系统可通过「依赖一致的答案复用」来降低成本，具体机制在 FinCacheServe 中提出 [4]。该方法针对企业可变文档
+[PASS] Q08 (answer         ) answered    src=5 cited=True 4.2s | 根据资料，RAG（检索增强生成）在心理健康领域的应用效果主要体现在提升意图检测的可靠性上。资料[1][2]指出，纯参数化大语言模型（LLM）
+[PASS] Q09 (answer         ) answered    src=5 cited=True 2.9s | 根据资料，AI Agent 在生产环境发布的主要风险是**能力不等于生产就绪**：许多发布决策依赖能力信号、演示或行为测试，而这些无法证明 
+[PASS] Q10 (answer         ) answered    src=5 cited=True 2.5s | 根据资料，检测 AI Agent 浏览器自动化行为的关键在于提取**最小特征集**进行行为检测，相关论文提出了这一方法并探讨了其可行性 [1
+[PASS] Q11 (answer         ) answered    src=5 cited=True 3.6s | 根据现有资料，针对「评估 AI Agent 开放式研究能力」的研究，主要有以下内容：  - 论文 [1][2] 提出了一种新的评估方式，即让
+[PASS] Q12 (answer         ) answered    src=5 cited=True 2.9s | AI Agent 的记忆实现正从外部模块转向「原生记忆能力」[1][2]。论文提出记忆基础模型，将记忆内化为模型自身的持久化、动态演进的记忆
+[PASS] Q13 (answer         ) answered    src=5 cited=True 3.5s | 根据资料，AI代理在网络安全场景中的表现主要体现在两个方面：一是具备执行多步攻击性安全任务的能力，例如结合语言模型、工具、记忆和执行环境进行
+[PASS] Q14 (answer         ) answered    src=5 cited=True 3.7s | 对话式 AI 代理面临的核心挑战是缺乏跨会话的持久记忆，常见的解决方案（如将完整聊天记录注入上下文窗口或依赖第三方记忆服务）会分别导致模型上
+[PASS] Q15 (answer         ) answered    src=5 cited=True 3.3s | 根据提供的论文资料，医疗场景的 AI Agent 基准主要涉及 **PatientAgentBench**，这是一个面向患者端健康 AI A
+[PASS] Q16 (answer         ) answered    src=5 cited=True 2.3s | 根据资料，多代理技能混合（SKIMIX）在开放式数学推理任务中能显著提升协作效果，但在多项选择任务上提升有限甚至为负；代理数量扩展呈非单调性
+[PASS] Q17 (reject         ) no_sources  src=0 cited=False 1.5s | 库中无相关论文，无法回答该问题。（检索内容与问题不相关，为防编造未生成回答）
+[PASS] Q18 (reject         ) no_sources  src=0 cited=False 1.8s | 库中无相关论文，无法回答该问题。（检索内容与问题不相关，为防编造未生成回答）
+[PASS] Q19 (reject         ) no_sources  src=0 cited=False 0.0s | 请输入问题。
+[PASS] Q20 (answer_or_reject) no_sources  src=0 cited=False 1.5s | 库中无相关论文，无法回答该问题。（检索内容与问题不相关，为防编造未生成回答）
+
+==== 汇总 ====
+通过: 20/20
+溯源率(有来源问题): 16/16
+拒绝率(边界场景): 3/3 + C4
+EXIT=0

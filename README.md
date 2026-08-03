@@ -47,3 +47,53 @@ E:\paper-radar\
 ## 技术栈
 
 arXiv API（免费）→ 本地 bge embedding（E:\models 已有）→ ChromaDB → deepseek LLM → Streamlit 界面
+
+## 快速开始（本地）
+
+前置：Python 3.12 + uv；本地 embedding 模型 `E:\models\bge-small-zh-v1.5`；deepseek key。
+
+```bash
+cd E:\paper-radar
+unset PYTHONPATH                      # Windows: Hermes 终端会劫持 venv，必须先清
+uv venv .venv --python 3.12
+uv pip install --index-url https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
+# 配置 .env：DEEPSEEK_API_KEY=sk-...
+export HF_HUB_DISABLE_SYMLINKS_WARNING=1
+uv run streamlit run app/app.py
+```
+
+数据管道（可选，界面内搜索会自动入库）：
+
+```bash
+uv run python -m app.pipeline "retrieval augmented generation" 30 100
+```
+
+## 架构
+
+```
+arXiv API ──> arxiv_fetcher.py ──> papers ──> embedder.py (chunk 500/100 + bge 512d)
+                                                      │
+                                                      ▼
+user 提问 ──> LLM 翻译成英文 ──> ChromaDB (cosine) ──> top-k chunks
+                                      │
+                                      ▼
+              deepseek LLM ──> 中文回答 + [n] 引用角标 + 来源卡片
+```
+
+## 评测
+
+```bash
+uv run python -m app.run_eval        # 20 问：溯源率/拒绝率自动判定，见 eval/test_set.md
+```
+
+## 部署（Streamlit Community Cloud）
+
+1. 仓库：`github.com/w3118597378-max/paper-radar`
+2. Cloud 绑定仓库 → 主分支 `app/app.py` 为入口
+3. Secrets 配 `DEEPSEEK_API_KEY`
+4. 注意：embedding 模型在云端需改为从 ModelScope/HF 下载，或预置缓存（见 AGENTS.md 技术栈约定）
+
+## 功能冻结
+
+M3 结束功能冻结，只修 bug 不增需求；v1.1 backlog：每日推送 / 收藏 / 导出。
+

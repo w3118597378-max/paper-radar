@@ -26,7 +26,7 @@ QUESTIONS = [
     ("retrieval augmented generation", "RAG 在多约束查询上有什么挑战？", "answer"),
     ("retrieval augmented generation", "最近 RAG 论文中记忆机制如何工作？", "answer"),
     ("retrieval augmented generation", "RAG 的安全与防护有什么进展？", "answer"),
-    ("retrieval augmented generation", "什么是查询相关的向量检索？", "answer"),
+    ("retrieval augmented generation", "RAG 系统如何复用答案来降低成本？", "answer"),
     ("retrieval augmented generation", "RAG 在心理健康领域的应用效果？", "answer"),
     # B. AI Agents 主题（8 问，预期有来源）
     ("AI Agents", "AI Agent 在生产环境发布有什么风险？", "answer"),

@@ -26,7 +26,7 @@ uv run python -m app.chat "retrieval augmented generation" "问题1"
 | A4 | RAG 在多约束查询上有什么挑战？ | MC-RAG 将检索重构为子图匹配，多约束处理 | ≥1 来源，含 2607.10151v1 |
 | A5 | 最近 RAG 论文中记忆机制如何工作？ | ConMem 贡献感知记忆 / 长期制造检查日志 | ≥1 来源 |
 | A6 | RAG 的安全与防护有什么进展？ | TriShieldRAG 三层防御框架（如检索到） | ≥1 来源 |
-| A7 | 什么是查询相关的向量检索？ | 神经信息访问相关性后验（2607.23561v1） | ≥1 来源 |
+| A7 | RAG 系统如何复用答案来降低成本？ | FinCacheServe 依赖一致的答案复用，避免重复检索和生成（2607.26076v1） | ≥1 来源，含 2607.26076v1 |
 | A8 | RAG 在心理健康领域的应用效果？ | LLM 心理健康 RAG 量化研究（2607.24817v1） | ≥1 来源 |
 
 ### B. AI Agents 主题（AI Agents，8 问）
@@ -61,4 +61,4 @@ uv run python -m app.chat "retrieval augmented generation" "问题1"
 
 | 日期 | 执行人 | 溯源率 | 拒绝率 | 结论 |
 |---|---|---|---|---|
-| （待填） | | | | |
+| 2026-08-03 | Paper Radar Agent | 16/16 (100%) | 3/3 + C4 (100%) | ✅ 通过（eval_run3.log） |

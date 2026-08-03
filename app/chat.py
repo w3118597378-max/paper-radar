@@ -17,6 +17,7 @@ import logging
 import os
 import re
 import sys
+import time
 from typing import Any
 
 from dotenv import load_dotenv
@@ -32,10 +33,59 @@ CHROMA_DIR = os.path.join(PROJECT_ROOT, "chroma_db")
 from embedder import _collection_name, _get_model  # noqa: E402
 
 # 相似度阈值：低于此值判定无相关论文（不回答）。
-# bge-small-zh 对英文内容整体分数偏低（相关 0.45~0.55），实测 0.40 能正确区分相关/无关
-MIN_SCORE = 0.40
+# query 经 LLM 翻译成英文后，相关论文相似度普遍 0.7+；0.45 可区分相关/无关
+MIN_SCORE = 0.45
 RETRIEVE_K = 10  # 检索 chunk 数（去重后压缩到 5 篇，保证每篇方法细节 chunk 有入场机会）
 MAX_SOURCES = 5
+
+
+_en_cache: dict[str, str] = {}
+
+
+def _translate_to_en(question: str) -> str:
+    """把中文问题翻译成英文检索词（bge-zh 对英文文档需英文 query 才精准）。
+
+    - 只调一次 LLM，结果按问题缓存到内存
+    - 翻译失败时原样返回（检索兜底）
+    """
+    key = question.strip().lower()
+    if key in _en_cache:
+        return _en_cache[key]
+    try:
+        from langchain_openai import ChatOpenAI
+
+        api_key = os.getenv("DEEPSEEK_API_KEY")
+        if not api_key:
+            return question
+        llm = ChatOpenAI(
+            model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
+            api_key=api_key,
+            base_url="https://api.deepseek.com/v1",
+            temperature=0,
+            max_tokens=80,
+        )
+        prompt = (
+            "把下面这个论文检索问题翻译成英文检索词（只输出英文检索词，不要解释，不要引号）:\n" + question
+        )
+        last_err: Exception | None = None
+        for attempt in range(2):  # 批量调用偶发限流，重试 1 次
+            try:
+                resp = llm.invoke(prompt)
+                break
+            except Exception as exc:  # noqa: BLE001
+                last_err = exc
+                time.sleep(1.0 * (attempt + 1))
+        else:
+            raise last_err  # type: ignore[misc]
+        text = (resp.content if hasattr(resp, "content") else str(resp)).strip().strip('"')
+        if not text:
+            raise ValueError("空翻译结果")
+        _en_cache[key] = text
+        logger.info("翻译 query: %s → %s", question, text)
+        return text
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("query 翻译失败，用原文检索: %s", exc)
+        return question
 
 
 def _retrieve(query: str, topic: str, k: int = RETRIEVE_K) -> list[dict[str, Any]]:
@@ -95,7 +145,15 @@ def chat(query: str, topic: str) -> dict[str, Any]:
     if not query:
         return {"answer": "请输入问题。", "sources": [], "status": "no_sources"}
 
-    hits = _retrieve(query, topic)
+    # 中文问题 → 英文检索词（bge-zh 对英文库需英文 query 才精准）
+    search_query = _translate_to_en(query)
+    hits = _retrieve(search_query, topic)
+    # 英文检索无结果时，用中文原文兜底再检索一次（防止翻译失效导致漏召回）
+    if not hits or max(h["score"] for h in hits) < MIN_SCORE:
+        zh_hits = _retrieve(query, topic)
+        if zh_hits and max(h["score"] for h in zh_hits) >= MIN_SCORE:
+            logger.info("英文检索无结果，中文原文兜底命中 %d 条", len(zh_hits))
+            hits = zh_hits
     # 过滤：相似度低于阈值视为无相关论文
     hits = [h for h in hits if h["score"] >= MIN_SCORE]
     if not hits:
@@ -140,6 +198,14 @@ def chat(query: str, topic: str) -> dict[str, Any]:
     )
     resp = llm.invoke(prompt)
     answer = resp.content if hasattr(resp, "content") else str(resp)
+
+    # LLM 判定资料与问题无关时（回答含拒绝字样），统一归为 no_sources
+    if "库中无相关论文" in answer or "无法回答" in answer:
+        return {
+            "answer": "库中无相关论文，无法回答该问题。（检索内容与问题不相关，为防编造未生成回答）",
+            "sources": [],
+            "status": "no_sources",
+        }
 
     sources = [
         {
