@@ -41,8 +41,8 @@ E:\paper-radar\
 - [x] 开发 T0 环境准备（venv/依赖/.env/embedding 全验收通过）
 - [x] 开发 M1 数据管道（arXiv→chunk→bge→ChromaDB，陌生主题 35.6s 入库）
 - [x] 开发 M2 核心功能（雷达/摘要/推荐/界面，陌生主题 23s 出图，10/10 摘要完整）
-- [ ] 开发 M3（问答溯源/部署/测试）
-- [ ] 上线（Streamlit Community Cloud）
+- [x] 开发 M3（问答溯源 20/20 通过 / 评测集 / GitHub 仓库 / 部署文档）
+- [x] 上线（Streamlit Community Cloud：https://paper-rad-adzueyihx6gb3swigyfd3g.streamlit.app/）
 
 ## 技术栈
 
@@ -89,9 +89,10 @@ uv run python -m app.run_eval        # 20 问：溯源率/拒绝率自动判定�
 ## 部署（Streamlit Community Cloud）
 
 1. 仓库：`github.com/w3118597378-max/paper-radar`
-2. Cloud 绑定仓库 → 主分支 `app/app.py` 为入口
+2. Cloud 绑定仓库 → 主分支，入口 `app/app.py`，`.python-version` 锁 Python 3.12
 3. Secrets 配 `DEEPSEEK_API_KEY`
-4. 注意：embedding 模型在云端需改为从 ModelScope/HF 下载，或预置缓存（见 AGENTS.md 技术栈约定）
+4. 公网地址：https://paper-rad-adzueyihx6gb3swigyfd3g.streamlit.app/
+5. 已知坑位：arXiv API 必须用 https（http 会 301 且 urllib 跨协议重定向不稳）；requirements 里 langchain-community 最高 1.0.0a1（用 >=0.4,<1.1）；embedding 模型云端从 ModelScope 下载（首次冷启动较慢）
 
 ## 功能冻结
 
