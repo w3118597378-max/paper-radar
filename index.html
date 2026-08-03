@@ -27,7 +27,7 @@
     button { cursor: pointer; }
     button:focus-visible, input:focus-visible { outline: 3px solid rgba(0, 113, 227, .28); outline-offset: 2px; }
     .shell { min-height: 100vh; }
-    .nav-wrap { height: 66px; border-bottom: 1px solid #eeeeef; background: rgba(255,255,255,.96); }
+    .nav-wrap { height: 66px; border-bottom: 1px solid #eeeeef; background: rgba(255,255,255,.96); position: sticky; top: 0; z-index: 50; }
     .nav { width: min(1100px, calc(100% - 48px)); height: 100%; margin: auto; display: flex; align-items: center; justify-content: space-between; }
     .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--text-primary); font-size: 17px; font-weight: 600; letter-spacing: -.3px; }
     .brand-mark { width: 22px; height: 22px; border: 2px solid var(--accent); border-radius: 50%; display: grid; place-items: center; }
@@ -48,6 +48,9 @@
     .round-action { flex: 0 0 48px; width: 48px; height: 48px; padding: 0; display: grid; place-items: center; color: #fff; background: var(--accent); border: 0; border-radius: 50%; }
     .round-action:hover { background: #0077ed; }
     .round-action svg { width: 20px; height: 20px; }
+    .round-action.loading { opacity: .7; pointer-events: none; }
+    .round-action.loading svg { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .topic-row { margin-top: 16px; display: flex; gap: 8px; align-items: center; }
     .topic-label { color: var(--text-secondary); font-size: 12px; }
     .topic { border: 1px solid var(--border); border-radius: 99px; background: #fff; color: #515154; padding: 5px 11px; font-size: 12px; }
@@ -58,6 +61,18 @@
     .capability-icon { width: 28px; height: 28px; margin-bottom: 15px; color: var(--accent); }
     .capability h2 { margin: 0 0 7px; font-size: 16px; font-weight: 600; letter-spacing: -.2px; }
     .capability p { margin: 0; color: var(--text-secondary); font-size: 13px; }
+
+    /* key 配置 */
+    .key-bar { width: min(1100px, calc(100% - 48px)); margin: 0 auto 26px; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-soft); font-size: 12px; }
+    .key-bar label { color: var(--text-secondary); white-space: nowrap; }
+    .key-bar input { flex: 1; min-width: 120px; padding: 7px 11px; border: 1px solid var(--border); border-radius: 7px; font-family: var(--mono); font-size: 12px; }
+    .key-bar input[type="password"] { letter-spacing: 1px; }
+    .key-status { white-space: nowrap; color: var(--text-secondary); }
+    .key-status.ok { color: var(--success); }
+    .key-status.warn { color: var(--warning); }
+    .key-save { border: 0; border-radius: 7px; padding: 7px 14px; color: #fff; background: var(--accent); font-size: 12px; }
+    .key-save:hover { background: #0077ed; }
+
     .results { padding: 42px 0 68px; }
     .results-heading { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
     .results-title { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 13px; }
@@ -65,6 +80,8 @@
     .result-meta { color: var(--text-secondary); font-family: var(--mono); font-size: 12px; }
     .status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; color: #16833a; background: #effbf2; border: 1px solid #bcebc9; border-radius: 99px; font-size: 12px; white-space: nowrap; }
     .status i { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+    .status.loading { color: var(--warning); background: #fff7ec; border-color: #ffd9a0; }
+    .status.loading i { background: var(--warning); }
     .search-state { display: none; color: var(--accent); font-size: 12px; }
     .search-state.show { display: block; }
     .radar-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.13fr); gap: 23px; align-items: start; }
@@ -81,9 +98,6 @@
     .active .trend-area { animation: reveal-area .2s 1.1s forwards; }
     .point { fill: #fff; stroke: var(--accent); stroke-width: 2; opacity: 0; }
     .active .point { animation: reveal-point .01s forwards; }
-    .active .point:nth-of-type(1) { animation-delay: .34s; } .active .point:nth-of-type(2) { animation-delay: .5s; }
-    .active .point:nth-of-type(3) { animation-delay: .66s; } .active .point:nth-of-type(4) { animation-delay: .82s; }
-    .active .point:nth-of-type(5) { animation-delay: .98s; } .active .point:nth-of-type(6) { animation-delay: 1.14s; }
     @keyframes draw-line { to { stroke-dashoffset: 0; } }
     @keyframes reveal-point { to { opacity: 1; } }
     @keyframes reveal-area { to { opacity: 1; } }
@@ -101,17 +115,29 @@
     .paper-title:hover { color: var(--accent); }
     .reference-btn { position: absolute; top: 17px; right: 18px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px; color: var(--accent); background: #fff; font-size: 11px; }
     .reference-btn:hover { border-color: var(--accent); }
+    .reference-btn.loading { opacity: .7; pointer-events: none; }
     .paper-meta { margin-top: 5px; color: var(--text-secondary); font-size: 11px; font-family: var(--mono); }
     .summary { display: grid; grid-template-columns: 54px 1fr; column-gap: 8px; row-gap: 3px; margin-top: 13px; color: #515154; font-size: 12px; }
     .summary strong { color: var(--text-secondary); font-weight: 600; }
     .paper-extra { display: none; margin: 13px 0 0 62px; padding-top: 11px; border-top: 1px solid #eeeef0; color: var(--text-secondary); font-size: 12px; }
     .paper-card.expanded .paper-extra { display: block; }
+    .paper-extra .summary { margin-top: 0; }
+    .paper-extra .recs { margin-top: 10px; display: grid; gap: 6px; }
+    .paper-extra .rec { padding: 8px 10px; border-radius: 6px; background: var(--bg-soft); font-size: 12px; }
+    .paper-extra .rec a { color: var(--accent); text-decoration: none; }
+    .paper-extra .rec .rec-reason { display: block; color: var(--text-secondary); font-size: 11px; margin-top: 2px; }
+    .summary-loading { margin-top: 13px; color: var(--text-secondary); font-size: 12px; display: flex; align-items: center; gap: 8px; }
+    .spinner { width: 13px; height: 13px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; }
+    .need-key { margin-top: 13px; color: var(--warning); font-size: 12px; }
+    .empty-hint { padding: 40px 20px; text-align: center; color: var(--text-secondary); font-size: 13px; }
+
     .qa-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 23px; padding: 42px 0 68px; align-items: start; }
     .qa-main { padding: 0; overflow: hidden; }
     .question-bar { display: flex; padding: 14px; border-bottom: 1px solid var(--border); background: #fff; }
     .question-bar input { flex: 1; min-width: 0; padding: 0 7px; border: 0; outline: 0; font-size: 14px; color: var(--text-primary); }
     .send { padding: 8px 13px; border: 0; border-radius: 7px; color: #fff; background: var(--accent); font-size: 12px; }
     .send:hover { background: #0077ed; }
+    .send.loading { opacity: .7; pointer-events: none; }
     .conversation { padding: 22px 23px 25px; background: #fff; }
     .turn + .turn { margin-top: 24px; }
     .turn-role { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; font-weight: 600; }
@@ -133,8 +159,9 @@
     .rule-card p { margin: 0; color: #515154; font-size: 13px; line-height: 1.7; }
     .tips { padding: 20px; background: var(--bg-soft); border-radius: 9px; }
     .tips ul { margin: 10px 0 0; padding-left: 18px; color: var(--text-secondary); font-size: 12px; line-height: 1.85; }
-    .toast { position: fixed; left: 50%; bottom: 24px; display: none; padding: 9px 13px; border: 1px solid #bcebc9; border-radius: 7px; color: #16833a; background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,.08); font-size: 12px; transform: translateX(-50%); }
+    .toast { position: fixed; left: 50%; bottom: 24px; display: none; padding: 9px 13px; border: 1px solid #bcebc9; border-radius: 7px; color: #16833a; background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,.08); font-size: 12px; transform: translateX(-50%); z-index: 100; }
     .toast.show { display: block; }
+    .toast.err { border-color: #ffb3b3; color: #d70015; }
     @media (prefers-reduced-motion: reduce) { .active .trend-line, .active .trend-area, .active .point { animation: none; opacity: 1; stroke-dashoffset: 0; } }
   </style>
 </head>
@@ -151,6 +178,13 @@
       </nav>
     </header>
 
+    <div class="key-bar" id="key-bar">
+      <label for="key-input">DeepSeek API Key</label>
+      <input id="key-input" type="password" placeholder="sk-...（可选：只存本浏览器，用于摘要/问答，不上传服务器）" autocomplete="off" />
+      <button class="key-save" id="key-save">保存</button>
+      <span class="key-status" id="key-status">未配置 · 领域雷达仍可用</span>
+    </div>
+
     <main>
       <section class="page active" id="home" aria-label="搜索入口">
         <div class="page-inner home-hero">
@@ -159,7 +193,7 @@
           <p>从最新论文到可追溯结论，给研究工作一份可靠的每周情报。</p>
           <form class="search-box" id="topic-search">
             <input id="topic-input" aria-label="研究主题" placeholder="输入研究主题，如：Retrieval-Augmented Generation" value="" />
-            <button class="round-action" aria-label="开始检索" type="submit">
+            <button class="round-action" id="search-btn" aria-label="开始检索" type="submit">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="5.8" stroke="currentColor" stroke-width="2"/><path d="m16 16 4.1 4.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </button>
           </form>
@@ -174,17 +208,14 @@
 
       <section class="page" id="radar" aria-label="领域雷达">
         <div class="page-inner results">
-          <div class="results-heading"><div><div class="eyebrow">Topic radar</div><div class="results-title"><h1 id="current-topic">Retrieval-Augmented Generation</h1><span class="result-meta">近 30 天 · 146 篇新论文</span><span class="status"><i></i>数据已更新</span></div></div><div id="search-state" class="search-state">正在整理最新论文与趋势…</div></div>
+          <div class="results-heading"><div><div class="eyebrow">Topic radar</div><div class="results-title"><h1 id="current-topic">—</h1><span class="result-meta" id="result-meta"></span><span class="status" id="data-status"><i></i>数据已更新</span></div></div><div id="search-state" class="search-state">正在从 arXiv 拉取最新论文…</div></div>
           <div class="radar-grid">
             <aside class="panel"><h2 class="panel-title">论文数量趋势</h2><div class="chart-note">近 30 天发布量</div>
-              <svg class="chart" viewBox="0 0 300 174" role="img" aria-label="近三十天论文数量折线趋势图"><defs><linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0071e3" stop-opacity=".14"/><stop offset="1" stop-color="#0071e3" stop-opacity="0"/></linearGradient></defs><line x1="27" y1="20" x2="285" y2="20"/><line x1="27" y1="63" x2="285" y2="63"/><line x1="27" y1="106" x2="285" y2="106"/><line x1="27" y1="149" x2="285" y2="149"/><text x="3" y="23">50</text><text x="3" y="66">30</text><text x="3" y="109">10</text><path class="trend-area" d="M31 130 L78 112 L125 120 L172 82 L219 92 L266 36 L266 149 L31 149Z"/><path class="trend-line" d="M31 130 L78 112 L125 120 L172 82 L219 92 L266 36"/><circle class="point" cx="31" cy="130" r="3.5"/><circle class="point" cx="78" cy="112" r="3.5"/><circle class="point" cx="125" cy="120" r="3.5"/><circle class="point" cx="172" cy="82" r="3.5"/><circle class="point" cx="219" cy="92" r="3.5"/><circle class="point" cx="266" cy="36" r="3.5"/><text x="25" y="166">8/1</text><text x="108" y="166">8/10</text><text x="192" y="166">8/20</text><text x="258" y="166">8/31</text></svg>
-              <div class="cloud-head"><h3>高频关键词</h3><span>按出现频次</span></div><div class="keyword-cloud"><span class="keyword xl">RAG <b>42</b></span><span class="keyword l">retrieval <b>38</b></span><span class="keyword m">hallucination <b>25</b></span><span class="keyword m">knowledge graph <b>18</b></span><span class="keyword s">agent <b>15</b></span><span class="keyword s">long context <b>12</b></span></div>
+              <div id="trend-chart"><div class="empty-hint">输入主题后生成</div></div>
+              <div class="cloud-head"><h3>高频关键词</h3><span>按出现频次</span></div><div class="keyword-cloud" id="keyword-cloud"><span class="empty-hint" style="padding:0">输入主题后生成</span></div>
             </aside>
-            <section class="paper-list" aria-label="论文列表">
-              <article class="paper-card"><button class="paper-title" aria-expanded="false">Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks</button><button class="reference-btn">相关文献</button><div class="paper-meta">Lewis et al. · 2020-05-22 · arXiv:2005.11401</div><div class="summary"><strong>问题</strong><span>参数化模型难以持续更新知识，也缺乏答案出处。</span><strong>方法</strong><span>把可微检索器与生成模型联合训练，在生成前检索外部语料。</span><strong>结论</strong><span>在知识密集型任务上优于纯参数模型，并支持证据回溯。</span><strong>创新点</strong><span>将神经检索和序列生成统一为端到端的 RAG 框架。</span></div><p class="paper-extra">展开说明：检索模块为生成过程提供可更新的非参数记忆，特别适合开放域问答和知识更新频繁的场景。</p></article>
-              <article class="paper-card"><button class="paper-title" aria-expanded="false">Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection</button><button class="reference-btn">相关文献</button><div class="paper-meta">Asai et al. · 2023-10-17 · arXiv:2310.11511</div><div class="summary"><strong>问题</strong><span>传统 RAG 往往无条件检索，且难以判断证据是否真正支持回答。</span><strong>方法</strong><span>以反思 token 驱动检索、生成和自我批判的自适应决策。</span><strong>结论</strong><span>在事实性与长文本任务上显著降低不受证据支持的生成。</span><strong>创新点</strong><span>让语言模型学习何时检索、如何评价自身输出质量。</span></div><p class="paper-extra">展开说明：模型将检索必要性和段落支持度纳入同一个生成循环，避免将低相关内容直接带入上下文。</p></article>
-              <article class="paper-card"><button class="paper-title" aria-expanded="false">A Survey on Retrieval-Augmented Text Generation for Large Language Models</button><button class="reference-btn">相关文献</button><div class="paper-meta">Gao et al. · 2024-01-03 · arXiv:2312.10997</div><div class="summary"><strong>问题</strong><span>RAG 方法快速分化，系统选型与评估缺少统一视角。</span><strong>方法</strong><span>梳理检索、增强、生成三个阶段的技术路径及评测维度。</span><strong>结论</strong><span>检索质量、上下文组织和归因评测共同决定最终可信度。</span><strong>创新点</strong><span>给出覆盖模块设计、应用场景与未来挑战的完整分类。</span></div><p class="paper-extra">展开说明：综述强调不能只看端到端准确率，还需对检索召回、证据忠实度与答案可归因性分别评测。</p></article>
-              <article class="paper-card"><button class="paper-title" aria-expanded="false">GraphRAG: Unifying Text and Knowledge Graphs for Retrieval-Augmented Generation</button><button class="reference-btn">相关文献</button><div class="paper-meta">Edge et al. · 2024-04-24 · arXiv:2404.16130</div><div class="summary"><strong>问题</strong><span>长文档中的全局主题和跨段落关系难以被向量检索完整捕获。</span><strong>方法</strong><span>从文本构建知识图谱，并以社区摘要支持全局与局部检索。</span><strong>结论</strong><span>面向全局问题时，图谱组织能提升答案覆盖度与可解释性。</span><strong>创新点</strong><span>将社区检测和层级摘要引入检索增强生成流程。</span></div><p class="paper-extra">展开说明：图结构让系统能够先聚合分散证据，再将相近关系组织为可供模型阅读的上下文摘要。</p></article>
+            <section class="paper-list" id="paper-list" aria-label="论文列表">
+              <div class="empty-hint">输入主题，Paper Radar 将为你扫描 arXiv 近 30 天的相关论文。</div>
             </section>
           </div>
         </div>
@@ -192,13 +223,10 @@
 
       <section class="page" id="qa" aria-label="深度问答">
         <div class="page-inner qa-layout">
-          <section class="qa-card qa-main" aria-label="引用溯源问答"><form class="question-bar" id="qa-form"><input id="qa-input" placeholder="就当前主题提问，如：RAG 的幻觉问题主要怎么解决？" aria-label="提出问题"/><button class="send" type="submit">提问</button></form>
+          <section class="qa-card qa-main" aria-label="引用溯源问答"><form class="question-bar" id="qa-form"><input id="qa-input" placeholder="就当前主题提问，如：RAG 的幻觉问题主要怎么解决？" aria-label="提出问题"/><button class="send" id="qa-send" type="submit">提问</button></form>
             <div class="conversation" id="conversation">
-              <article class="turn user"><div class="turn-role"><span class="avatar">你</span>你的问题</div><p class="message">RAG 的幻觉问题主要怎么解决？</p></article>
-              <article class="turn assistant"><div class="turn-role"><span class="avatar">PR</span>Paper Radar</div><p class="message">RAG 的幻觉通常不只来自模型本身，也来自低相关或不可靠的检索上下文。更稳妥的做法是先提升检索结果的相关性与覆盖度，再要求生成内容与引用证据逐句保持一致。<a class="citation" href="#source-1">[1]</a> Self-RAG 进一步把“是否需要检索”和“证据是否支持回答”变为模型可学习的反思判断，从而减少无依据的补全。<a class="citation" href="#source-2">[2]</a></p><div class="sources"><div class="source" id="source-1"><a href="https://arxiv.org/abs/2005.11401" target="_blank" rel="noreferrer">[1] Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks</a> · Lewis et al., 2020</div><div class="source" id="source-2"><a href="https://arxiv.org/abs/2310.11511" target="_blank" rel="noreferrer">[2] Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection</a> · Asai et al., 2023</div></div></article>
-              <article class="turn user"><div class="turn-role"><span class="avatar">你</span>你的问题</div><p class="message">知识图谱能给 RAG 带来什么？</p></article>
-              <article class="turn assistant"><div class="turn-role"><span class="avatar">PR</span>Paper Radar</div><p class="message">知识图谱的价值在于显式保存实体、关系与跨文档连接。对于需要跨多个段落综合的全局问题，它能把分散证据先组织成主题社区，再提供更完整、可追溯的上下文。<a class="citation" href="https://arxiv.org/abs/2404.16130" target="_blank" rel="noreferrer">[3]</a></p><div class="sources"><div class="source"><a href="https://arxiv.org/abs/2404.16130" target="_blank" rel="noreferrer">[3] GraphRAG: Unifying Text and Knowledge Graphs for Retrieval-Augmented Generation</a> · Edge et al., 2024</div></div></article>
-            </div><div class="knowledge-status"><i></i>已连接知识库 · 146 篇论文</div>
+              <div class="empty-hint" id="qa-empty">先在上方输入研究主题，再回来提问。</div>
+            </div><div class="knowledge-status" id="knowledge-status"><i></i>已连接 arXiv 数据源</div>
           </section>
           <aside class="side-stack"><section class="rule-card"><span class="rule-badge">SOURCE-GROUNDED</span><h2>无来源不回答</h2><p>本产品所有回答均附带来源论文。检索不到相关内容时，会明确提示范围不足，绝不编造。</p></section><section class="tips"><h2>提问建议</h2><ul><li>聚焦一个明确的研究问题或方法选择。</li><li>询问“证据是什么”，而不只要结论。</li><li>可限定论文范围、时间或具体任务。</li></ul></section></aside>
         </div>
@@ -206,37 +234,452 @@
     </main>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script>
+
+  <script type="module">
+    import { pipeline, cos_sim } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0';
+
+    // ---------- 状态 ----------
+    const state = {
+      topic: null,
+      papers: [],          // 当前主题论文
+      paperVecs: null,     // Float32Array[] 论文向量（顺序对应 papers）
+      model: null,         // embedding pipeline
+      modelLoading: false,
+      modelPromise: null,
+    };
+
+    const $ = id => document.getElementById(id);
     const pages = document.querySelectorAll('.page');
     const tabs = document.querySelectorAll('.tab');
-    const topicInput = document.getElementById('topic-input');
-    const currentTopic = document.getElementById('current-topic');
-    const searchState = document.getElementById('search-state');
-    const toast = document.getElementById('toast');
+    const toast = $('toast');
 
+    // ---------- 工具 ----------
     function showPage(id) {
-      pages.forEach(page => page.classList.toggle('active', page.id === id));
-      tabs.forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.page === id)));
+      pages.forEach(p => p.classList.toggle('active', p.id === id));
+      tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.page === id)));
       window.scrollTo(0, 0);
+      if (id === 'radar' && state.papers.length) renderRadarPage();
     }
-    function runSearch(topic) {
-      const value = topic.trim() || 'Retrieval-Augmented Generation';
-      currentTopic.textContent = value === 'RAG' ? 'Retrieval-Augmented Generation' : value;
-      showPage('radar');
-      searchState.classList.add('show');
-      window.setTimeout(() => searchState.classList.remove('show'), 900);
-    }
-    function notify(message) {
-      toast.textContent = message;
+    function notify(msg, isErr) {
+      toast.textContent = msg;
+      toast.classList.toggle('err', !!isErr);
       toast.classList.add('show');
-      window.setTimeout(() => toast.classList.remove('show'), 1800);
+      clearTimeout(notify._t);
+      notify._t = setTimeout(() => toast.classList.remove('show'), 2200);
     }
+    function getKey() { return localStorage.getItem('deepseek_key') || ''; }
+    function hasKey() { return !!getKey(); }
+    function esc(s) {
+      return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function fmtDate(iso) { return (iso || '').slice(0, 10); }
+    function truncate(s, n) { s = s || ''; return s.length > n ? s.slice(0, n) + '…' : s; }
+
+    // ---------- DeepSeek 直连（浏览器 CORS 已验证放行） ----------
+    async function callDeepSeek(messages, { max_tokens = 700, temperature = 0.2, json = false } = {}) {
+      const key = getKey();
+      if (!key) throw new Error('未配置 DeepSeek API Key');
+      const body = {
+        model: 'deepseek-chat',
+        messages,
+        max_tokens,
+        temperature,
+        stream: false,
+      };
+      if (json) body.response_format = { type: 'json_object' };
+      const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = data.error?.message || ('HTTP ' + res.status);
+        if (res.status === 401) throw new Error('API Key 无效（401），请检查后重试');
+        throw new Error('DeepSeek 调用失败: ' + msg);
+      }
+      return data.choices?.[0]?.message?.content || '';
+    }
+
+    // ---------- arXiv 拉取（走同域 /api/arxiv 代理，绕开 CORS） ----------
+    async function fetchPapers(topic, maxResults = 50) {
+      const q = encodeURIComponent('all:"' + topic + '"');
+      const url = `/api/arxiv?search_query=${q}&max_results=${maxResults}&sortBy=submittedDate&sortOrder=descending`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('arXiv 请求失败: HTTP ' + res.status);
+      const xml = await res.text();
+      const doc = new DOMParser().parseFromString(xml, 'application/xml');
+      const entries = Array.from(doc.getElementsByTagName('entry'));
+      const cutoff = Date.now() - 30 * 24 * 3600 * 1000;
+      const papers = [];
+      for (const e of entries) {
+        const id = (e.getElementsByTagName('id')[0]?.textContent || '').trim();
+        const arxivId = (id.match(/\/abs\/([^\/]+)/) || [])[1] || id;
+        const published = (e.getElementsByTagName('published')[0]?.textContent || '').trim();
+        const title = (e.getElementsByTagName('title')[0]?.textContent || '').replace(/\s+/g, ' ').trim();
+        const abstract = (e.getElementsByTagName('summary')[0]?.textContent || '').replace(/\s+/g, ' ').trim();
+        const authors = Array.from(e.getElementsByTagName('name')).map(n => n.textContent.trim());
+        if (new Date(published).getTime() < cutoff) continue;
+        papers.push({ arxivId, title, abstract, authors, published, url: 'https://arxiv.org/abs/' + arxivId });
+      }
+      return papers;
+    }
+
+    // ---------- Embedding 模型（懒加载） ----------
+    function getModel() {
+      if (state.model) return Promise.resolve(state.model);
+      if (state.modelPromise) return state.modelPromise;
+      state.modelLoading = true;
+      state.modelPromise = pipeline('feature-extraction', 'Xenova/bge-small-zh-v1.5', { dtype: 'q8' })
+        .then(m => { state.model = m; state.modelLoading = false; return m; })
+        .catch(e => { state.modelLoading = false; state.modelPromise = null; throw e; });
+      return state.modelPromise;
+    }
+    async function embedTexts(texts) {
+      const model = await getModel();
+      const out = await model(texts, { pooling: 'mean', normalize: true });
+      const n = texts.length, dim = out.data.length / n;
+      const vecs = [];
+      for (let i = 0; i < n; i++) vecs.push(out.data.slice(i * dim, (i + 1) * dim));
+      return vecs; // Float32Array[]
+    }
+
+    // ---------- 关键词统计（轻量词干化） ----------
+    const STOP = new Set(('the a an and or but of in on at to for with by from as is are was were be been being this that these those it its we our you your they their them he she his her i me my not no yes so if then than too very can could would should may might must will shall do does did have has had which what when where who whom why how all any both each few more most other some such only own same about into over after before between under again further once also using used use via per among toward against during without within across along around down up out off above below new recent recently show shows shown propose proposed proposes present presents presented introduce introduced based approach methods method results result performance task tasks model models paper papers work works study studies data set sets system systems framework frameworks e.g i.e et al etc fig figs table tables section see well however while due yet much many one two three first second large significant state of-the-art sota retrieval augmented generation language models llm llms').split(' '));
+    const WORD_RE = /[a-z][a-z\-]{2,}/g;
+    function stem(w) {
+      w = w.replace(/-+$/, '');
+      if (w.length <= 4) return w;
+      if (w.endsWith('ies') && w.length > 5) return w.slice(0, -3) + 'y';
+      if (w.endsWith('es') && w.length > 4) return w.slice(0, -2);
+      if (w.endsWith('s') && !w.endsWith('ss') && !w.endsWith('us')) return w.slice(0, -1);
+      if (w.endsWith('ing') && w.length > 6) return w.slice(0, -3);
+      if (w.endsWith('ed') && w.length > 5) return w.slice(0, -2);
+      return w;
+    }
+    function extractKeywords(papers, topN = 12) {
+      const counter = new Map();
+      for (const p of papers) {
+        const text = (p.title + ' ' + p.abstract).toLowerCase();
+        for (const m of text.matchAll(WORD_RE)) {
+          let w = stem(m[0]);
+          if (w.length < 3 || STOP.has(w)) continue;
+          counter.set(w, (counter.get(w) || 0) + 1);
+        }
+      }
+      return Array.from(counter.entries()).sort((a, b) => b[1] - a[1]).slice(0, topN);
+    }
+
+    // ---------- 雷达渲染 ----------
+    function renderTrend(papers) {
+      const container = $('trend-chart');
+      if (!papers.length) { container.innerHTML = '<div class="empty-hint">无近 30 天数据</div>'; return; }
+      const counts = new Map();
+      for (const p of papers) {
+        const d = fmtDate(p.published);
+        counts.set(d, (counts.get(d) || 0) + 1);
+      }
+      const days = Array.from(counts.keys()).sort();
+      const maxC = Math.max(...counts.values(), 1);
+      const W = 300, H = 174, padL = 30, padR = 12, padT = 14, padB = 22;
+      const n = days.length;
+      const innerW = W - padL - padR, innerH = H - padT - padB;
+      const x = i => padL + (n === 1 ? innerW / 2 : (i / (n - 1)) * innerW);
+      const y = c => padT + innerH - (c / maxC) * innerH;
+      const pts = days.map((d, i) => [x(i), y(counts.get(d))]);
+      const linePath = pts.map(p => p.join(',')).join(' ');
+      const areaPath = `M${pts[0][0]} ${H - padB} L` + pts.map(p => p.join(' ')).join(' L') + ` L${pts[n-1][0]} ${H - padB}Z`;
+      const gridVals = [Math.round(maxC * 0.8), Math.round(maxC * 0.5), Math.round(maxC * 0.2)];
+      const grid = gridVals.map(c => `<line x1="${padL}" y1="${y(c)}" x2="${W - padR}" y2="${y(c)}"/><text x="3" y="${y(c) + 3}">${c}</text>`).join('');
+      const dots = pts.map((p, i) => `<circle class="point" cx="${p[0]}" cy="${p[1]}" r="3.5" style="animation-delay:${(0.3 + i * 0.15).toFixed(2)}s"/>`).join('');
+      const labelStep = Math.max(1, Math.floor(n / 6));
+      const xLabels = days.filter((_, i) => i % labelStep === 0).map((d, i) => {
+        const idx = days.indexOf(d);
+        return `<text x="${x(idx)}" y="${H - 6}" text-anchor="middle">${d.slice(5)}</text>`;
+      }).join('');
+      container.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="近三十天论文数量折线趋势图">
+        <defs><linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0071e3" stop-opacity=".14"/><stop offset="1" stop-color="#0071e3" stop-opacity="0"/></linearGradient></defs>
+        ${grid}
+        <path class="trend-area" d="${areaPath}"/>
+        <path class="trend-line" d="M ${linePath}"/>
+        ${dots}
+        ${xLabels}
+      </svg>`;
+    }
+    function renderKeywords(papers) {
+      const el = $('keyword-cloud');
+      const kws = extractKeywords(papers);
+      if (!kws.length) { el.innerHTML = '<span class="empty-hint" style="padding:0">无关键词</span>'; return; }
+      const maxC = kws[0][1];
+      el.innerHTML = kws.map(([w, c], i) => {
+        const cls = i === 0 ? 'xl' : c >= maxC * 0.5 ? 'l' : c >= maxC * 0.25 ? 'm' : 's';
+        return `<span class="keyword ${cls}">${esc(w)} <b>${c}</b></span>`;
+      }).join('');
+    }
+
+    // ---------- 论文卡片 ----------
+    function renderPapers(papers) {
+      const list = $('paper-list');
+      list.innerHTML = '';
+      papers.forEach((p, i) => {
+        const card = document.createElement('article');
+        card.className = 'paper-card';
+        card.innerHTML = `
+          <button class="paper-title" aria-expanded="false">${esc(p.title)}</button>
+          <button class="reference-btn" data-idx="${i}">相关文献</button>
+          <div class="paper-meta">${esc(p.authors.slice(0, 3).join(', '))}${p.authors.length > 3 ? ' 等' : ''} · ${fmtDate(p.published)} · ${esc(p.arxivId)} · <a href="${esc(p.url)}" target="_blank" rel="noreferrer">arXiv ↗</a></div>
+          <div class="paper-extra" id="extra-${i}"></div>
+        `;
+        card.querySelector('.paper-title').addEventListener('click', () => toggleSummary(card, p, i));
+        card.querySelector('.reference-btn').addEventListener('click', () => showRecommendations(p, i, card));
+        list.appendChild(card);
+      });
+    }
+    async function toggleSummary(card, paper, idx) {
+      const extra = $('extra-' + idx);
+      const title = card.querySelector('.paper-title');
+      const expanded = card.classList.toggle('expanded');
+      title.setAttribute('aria-expanded', String(expanded));
+      if (!expanded) return;
+      if (extra.dataset.done) return;
+      if (!hasKey()) {
+        extra.innerHTML = '<div class="need-key">配置上方 DeepSeek API Key 后，可查看四段式中文摘要。</div>';
+        extra.dataset.done = 'needkey';
+        return;
+      }
+      extra.innerHTML = '<div class="summary-loading"><span class="spinner"></span>正在生成中文摘要…</div>';
+      try {
+        const summary = await generateSummary(paper);
+        extra.innerHTML = `<div class="summary">
+          <strong>问题</strong><span>${esc(summary.problem)}</span>
+          <strong>方法</strong><span>${esc(summary.method)}</span>
+          <strong>结论</strong><span>${esc(summary.conclusion)}</span>
+          <strong>创新点</strong><span>${esc(summary.innovation)}</span>
+        </div>`;
+        extra.dataset.done = '1';
+      } catch (e) {
+        extra.innerHTML = `<div class="need-key">${esc(e.message)}</div>`;
+        extra.dataset.done = 'err';
+      }
+    }
+    async function generateSummary(paper) {
+      const prompt = `你是论文摘要助手。根据论文标题与英文摘要生成四字段中文摘要。
+规则:
+1. 输出 JSON: {"problem":"...","method":"...","conclusion":"...","innovation":"..."}
+2. 每字段 1~2 句中文，≤120 字
+3. 严格基于摘要，未提及写「未提及」，禁止编造
+4. 只输出 JSON
+
+标题: ${paper.title}
+摘要: ${paper.abstract.slice(0, 1800)}`;
+      const text = await callDeepSeek([{ role: 'user', content: prompt }], { max_tokens: 500, json: true });
+      const m = text.match(/\{.*\}/s);
+      const data = m ? JSON.parse(m[0]) : {};
+      return {
+        problem: data.problem || '未提及',
+        method: data.method || '未提及',
+        conclusion: data.conclusion || '未提及',
+        innovation: data.innovation || '未提及',
+      };
+    }
+
+    // ---------- 相关文献（向量检索） ----------
+    async function ensureVectors() {
+      if (state.paperVecs) return state.paperVecs;
+      const texts = state.papers.map(p => `标题: ${p.title}\n摘要: ${p.abstract.slice(0, 800)}`);
+      state.paperVecs = await embedTexts(texts);
+      return state.paperVecs;
+    }
+    async function showRecommendations(paper, idx, card) {
+      const btn = card.querySelector('.reference-btn');
+      if (btn.dataset.busy) return;
+      if (!hasKey()) { notify('配置 DeepSeek API Key 后可使用相关文献推荐（需要向量模型，模型免费本地运行）', true); return; }
+      btn.dataset.busy = '1';
+      btn.classList.add('loading');
+      btn.textContent = '推荐中…';
+      try {
+        const vecs = await ensureVectors();
+        const qv = await embedTexts(['标题: ' + paper.title + '\n摘要: ' + paper.abstract.slice(0, 800)]);
+        const sims = vecs.map((v, i) => ({ i, s: cos_sim(qv[0], v) }));
+        sims.sort((a, b) => b.s - a.s);
+        const recs = sims.filter(r => r.i !== idx && !state.papers[r.i].arxivId.includes(paper.arxivId)).slice(0, 3);
+        // 展示：展开卡片，在 extra 里追加推荐
+        const extra = $('extra-' + idx);
+        if (!card.classList.contains('expanded')) {
+          card.classList.add('expanded');
+          card.querySelector('.paper-title').setAttribute('aria-expanded', 'true');
+        }
+        let recHtml = '';
+        for (const r of recs) {
+          const p = state.papers[r.i];
+          recHtml += `<div class="rec"><a href="${esc(p.url)}" target="_blank" rel="noreferrer">${esc(p.title)}</a><span class="rec-reason">相似度 ${r.s.toFixed(3)} · ${esc(p.arxivId)}</span></div>`;
+        }
+        if (extra.dataset.done === 'needkey' || !extra.dataset.done) {
+          extra.innerHTML = `<div class="recs">${recHtml}</div>`;
+        } else {
+          const old = extra.querySelector('.recs');
+          if (old) old.innerHTML = recHtml;
+          else extra.insertAdjacentHTML('beforeend', `<div class="recs">${recHtml}</div>`);
+        }
+        extra.dataset.done = '1';
+      } catch (e) {
+        notify(e.message, true);
+      } finally {
+        btn.dataset.busy = '';
+        btn.classList.remove('loading');
+        btn.textContent = '相关文献';
+      }
+    }
+
+    // ---------- 问答 ----------
+    async function askQuestion(q) {
+      if (!state.papers.length) { notify('请先在上方输入研究主题', true); return; }
+      if (!hasKey()) { notify('配置 DeepSeek API Key 后可使用深度问答', true); return; }
+      const conv = $('conversation');
+      $('qa-empty')?.remove();
+      const userTurn = document.createElement('article');
+      userTurn.className = 'turn user';
+      userTurn.innerHTML = `<div class="turn-role"><span class="avatar">你</span>你的问题</div><p class="message">${esc(q)}</p>`;
+      conv.appendChild(userTurn);
+      const aiTurn = document.createElement('article');
+      aiTurn.className = 'turn assistant';
+      aiTurn.innerHTML = `<div class="turn-role"><span class="avatar">PR</span>Paper Radar</div><p class="message"><span class="spinner"></span> 正在检索论文并生成回答…</p>`;
+      conv.appendChild(aiTurn);
+      window.scrollTo(0, document.body.scrollHeight);
+      try {
+        const result = await answerWithSources(q);
+        aiTurn.innerHTML = `<div class="turn-role"><span class="avatar">PR</span>Paper Radar</div><p class="message">${result.answerHtml}</p><div class="sources">${result.sourcesHtml}</div>`;
+      } catch (e) {
+        aiTurn.innerHTML = `<div class="turn-role"><span class="avatar">PR</span>Paper Radar</div><p class="message" style="color:#d70015">${esc(e.message)}</p>`;
+      }
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+    async function answerWithSources(question) {
+      const vecs = await ensureVectors();
+      const qv = await embedTexts([question]);
+      const sims = vecs.map((v, i) => ({ i, s: cos_sim(qv[0], v) }));
+      sims.sort((a, b) => b.s - a.s);
+      const top = sims.filter(r => r.s >= 0.35).slice(0, 5);
+      if (!top.length) {
+        return {
+          answerHtml: '库中无相关论文，无法回答该问题。（检索相似度低于阈值，为防编造未生成回答）',
+          sourcesHtml: '',
+        };
+      }
+      const context = top.map((r, i) => {
+        const p = state.papers[r.i];
+        return `[${i + 1}] 论文 ${p.arxivId} 《${p.title}》\n摘录: ${p.abstract.slice(0, 900)}`;
+      }).join('\n\n');
+      const prompt = `你是论文情报助手，基于提供的论文资料回答用户问题。
+
+规则:
+1. 回答必须基于资料，关键结论后加引用角标 [1][2][3]（对应资料编号）
+2. 每条核心结论必须有来源；资料中找不到答案的部分写「资料中未提及」
+3. 问题与资料完全无关时只回答「库中无相关论文，无法回答」
+4. 中文回答，简洁，3~6 句
+
+资料:
+${context}
+
+用户问题: ${question}
+
+回答:`;
+      const answer = await callDeepSeek([{ role: 'user', content: prompt }], { max_tokens: 800 });
+      if (answer.includes('库中无相关论文')) {
+        return { answerHtml: esc(answer), sourcesHtml: '' };
+      }
+      const sourcesHtml = top.map((r, i) => {
+        const p = state.papers[r.i];
+        return `<div class="source"><a href="${esc(p.url)}" target="_blank" rel="noreferrer">[${i + 1}] ${esc(p.title)}</a> · ${esc(p.authors.slice(0, 2).join(', '))} · 相似度 ${r.s.toFixed(3)}</div>`;
+      }).join('');
+      // 回答中的 [n] 转引用角标
+      const answerHtml = esc(answer).replace(/\[(\d+)\]/g, '<a class="citation" href="#qa">[$1]</a>');
+      return { answerHtml, sourcesHtml };
+    }
+
+    // ---------- 搜索主流程 ----------
+    async function runSearch(topicRaw) {
+      const topic = (topicRaw || '').trim();
+      if (!topic) { notify('请输入研究主题', true); return; }
+      state.topic = topic;
+      $('current-topic').textContent = topic;
+      $('result-meta').textContent = '';
+      $('data-status').className = 'status loading';
+      $('data-status').innerHTML = '<i></i>正在扫描 arXiv…';
+      $('search-state').classList.add('show');
+      const btn = $('search-btn');
+      btn.classList.add('loading');
+      $('keyword-cloud').innerHTML = '<span class="empty-hint" style="padding:0">统计中…</span>';
+      $('trend-chart').innerHTML = '<div class="empty-hint">拉取中…</div>';
+      $('paper-list').innerHTML = '<div class="empty-hint"><span class="spinner"></span> 正在从 arXiv 拉取近 30 天论文…</div>';
+      $('qa-empty').textContent = `正在为「${topic}」构建论文库…`;
+      showPage('radar');
+      try {
+        const papers = await fetchPapers(topic);
+        if (!papers.length) throw new Error('近 30 天没有检索到相关论文，换一个主题试试');
+        state.papers = papers;
+        state.paperVecs = null;
+        $('result-meta').textContent = `近 30 天 · ${papers.length} 篇新论文`;
+        $('data-status').className = 'status';
+        $('data-status').innerHTML = '<i></i>数据已更新';
+        renderTrend(papers);
+        renderKeywords(papers);
+        renderPapers(papers);
+        $('knowledge-status').innerHTML = `<i></i>已连接 arXiv · ${papers.length} 篇论文`;
+        $('qa-empty').textContent = `当前主题：「${topic}」· 就论文库提问`;
+        notify(`已从 arXiv 拉取 ${papers.length} 篇论文`);
+        // 后台预加载向量模型（不阻塞页面）
+        getModel().catch(() => {});
+      } catch (e) {
+        $('data-status').className = 'status';
+        $('data-status').innerHTML = '<i></i>拉取失败';
+        $('paper-list').innerHTML = `<div class="empty-hint">${esc(e.message)}</div>`;
+        notify(e.message, true);
+      } finally {
+        btn.classList.remove('loading');
+        $('search-state').classList.remove('show');
+      }
+    }
+
+    // ---------- 事件绑定 ----------
     tabs.forEach(tab => tab.addEventListener('click', () => showPage(tab.dataset.page)));
-    document.getElementById('topic-search').addEventListener('submit', event => { event.preventDefault(); runSearch(topicInput.value); });
-    document.querySelectorAll('.topic').forEach(tag => tag.addEventListener('click', () => { topicInput.value = tag.textContent; runSearch(tag.textContent); }));
-    document.querySelectorAll('.paper-title').forEach(button => button.addEventListener('click', () => { const card = button.closest('.paper-card'); const expanded = card.classList.toggle('expanded'); button.setAttribute('aria-expanded', String(expanded)); }));
-    document.querySelectorAll('.reference-btn').forEach(button => button.addEventListener('click', () => notify('已为这篇论文定位相关文献。')));
-    document.getElementById('qa-form').addEventListener('submit', event => { event.preventDefault(); const input = document.getElementById('qa-input'); if (!input.value.trim()) { input.focus(); return; } notify('已基于当前知识库检索来源论文。'); input.value = ''; });
+    $('topic-search').addEventListener('submit', e => { e.preventDefault(); runSearch($('topic-input').value); });
+    document.querySelectorAll('.topic').forEach(tag => tag.addEventListener('click', () => { $('topic-input').value = tag.textContent; runSearch(tag.textContent); }));
+    $('qa-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const input = $('qa-input');
+      if (!input.value.trim()) { input.focus(); return; }
+      const q = input.value.trim();
+      input.value = '';
+      askQuestion(q);
+    });
+
+    // key 管理
+    function initKey() {
+      const saved = getKey();
+      if (saved) {
+        $('key-input').value = saved;
+        $('key-status').textContent = '已配置（仅存于本浏览器）';
+        $('key-status').className = 'key-status ok';
+      }
+    }
+    $('key-save').addEventListener('click', () => {
+      const v = $('key-input').value.trim();
+      if (!v) {
+        localStorage.removeItem('deepseek_key');
+        $('key-status').textContent = '未配置 · 领域雷达仍可用';
+        $('key-status').className = 'key-status';
+        notify('已清除本地 Key');
+        return;
+      }
+      localStorage.setItem('deepseek_key', v);
+      $('key-status').textContent = '已配置（仅存于本浏览器）';
+      $('key-status').className = 'key-status ok';
+      notify('Key 已保存到本浏览器');
+    });
+    $('key-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('key-save').click(); });
+
+    initKey();
   </script>
 </body>
 </html>
