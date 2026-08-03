@@ -17,6 +17,7 @@ import logging
 import os
 import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -25,7 +26,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-ARXIV_API = "http://export.arxiv.org/api/query"
+ARXIV_API = "https://export.arxiv.org/api/query"  # https: http 会 301 且 urllib 跨协议重定向不稳
 CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "cache")
 CACHE_TTL_SECONDS = 6 * 3600  # 缓存 6 小时
 
@@ -102,14 +103,22 @@ def _parse_entry(entry: ET.Element) -> dict[str, Any]:
     }
 
 
-def _request_with_retry(url: str, max_retries: int = 3, sleep_seconds: float = 3.0) -> str:
-    """带重试 + 节流的请求。arXiv 限流 ~1 req/3s。"""
+def _request_with_retry(url: str, max_retries: int = 4, sleep_seconds: float = 3.0) -> str:
+    """带重试 + 节流的请求。arXiv 限流 ~1 req/3s，429 时退避更久。"""
     last_err: Exception | None = None
     for attempt in range(1, max_retries + 1):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "paper-radar/0.1 (mailto:research@example.com)"})
             with urllib.request.urlopen(req, timeout=30) as resp:
                 return resp.read().decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            last_err = exc
+            if exc.code == 429:
+                wait = 15.0 * attempt  # 限流：15s 起，逐次加倍
+            else:
+                wait = sleep_seconds * attempt
+            logger.warning("arXiv HTTP %s (第 %d/%d 次): %.0fs 后重试", exc.code, attempt, max_retries, wait)
+            time.sleep(wait)
         except Exception as exc:  # noqa: BLE001 - 网络层错误统一重试
             last_err = exc
             wait = sleep_seconds * attempt
