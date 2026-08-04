@@ -1,100 +1,183 @@
-# Paper Radar · 项目说明
+# Paper Radar · 论文情报雷达
 
-> 论文情报 Agent：给时间稀缺的领域追踪者，一个每天自动更新的情报雷达，10 分钟掌握一个领域一周的进展。
-> 定位：订阅式领域情报追踪（非通用搜索）。核心卖点：引用溯源防编造、领域趋势雷达、中文结构化摘要。
+> Research intelligence, made clear.
 
-## 目录结构
+**Paper Radar** 是一个论文情报 Agent：输入研究主题，10 分钟掌握该领域一周进展。面向需要持续追踪前沿论文的研究者、工程师与产品经理。
+
+核心差异化：**引用溯源防编造**——所有回答必须附来源论文，检索不到就明确告知，绝不编造。
+
+![首页](docs/screenshots/pr-home.png)
+![领域雷达](docs/screenshots/pr-radar.png)
+
+## ✨ 功能特性
+
+| 能力 | 说明 |
+|---|---|
+| 📡 **领域雷达** | 自动扫描 arXiv 近 30 天论文，输出数量趋势图与高频关键词云，30 秒判断领域冷热 |
+| 📄 **中文结构化摘要** | 每篇论文自动生成「问题 / 方法 / 结论 / 创新点」四段式中文摘要，无需阅读英文原文 |
+| 💬 **深度问答（引用溯源）** | 基于向量检索的 RAG 问答，每个关键结论附 `[n]` 引用角标 + arXiv 来源链接 |
+| 🔗 **相关文献推荐** | 基于语义相似度推荐同领域论文，一键跳转 arXiv 原文 |
+| 🔒 **无来源不回答** | 检索相似度低于阈值时明确拒绝回答，从机制上杜绝幻觉与编造 |
+
+## 🚀 在线体验
+
+**https://paper-radar.w3118597378.workers.dev**
+
+- 打开即用：输入主题即可生成领域雷达（无需任何配置）
+- 摘要 / 问答 / 文献推荐：在页面顶部填入自己的 DeepSeek API Key（**仅存于浏览器 localStorage，不上传任何服务器**）
+- 模型（bge-small-zh）与前端同域托管，首次加载约 1~3 秒
+
+> 为什么不内置 key？本项目为开源演示，不持有任何用户的 API 密钥。所有 LLM 调用均由访问者浏览器直连 DeepSeek 官方 API，代码里零密钥、零后端存储。
+
+## 🏗 架构
+
+纯浏览器端 RAG，零后端服务：
 
 ```
-E:\paper-radar\
-├── README.md              ← 本文件（项目说明 + 索引）
-├── AGENTS.md              ← 项目规则（Codex/agent 自动读取）
-├── DESIGN.md              ← 设计定案（经典苹果白，统一参照）
-├── prototype-prompt.txt   ← Codex 原型规格 prompt
-├── index.html             ← 前端原型（Codex 产出，待验收）
-└── docs\
-    ├── PRD.md             ← 产品需求文档（副本）
-    ├── TASKS.md           ← 分步任务清单（副本）
-    ├── TOOLING.md         ← 工具与技能盘点（副本）
-    ├── SCOPE.md           ← MVP 范围共识书（副本）
-    └── BASELINE.md        ← 参考标准基线（副本）
+┌─────────────────────────── 浏览器 (GitHub Pages / Cloudflare Workers 静态托管) ───────────────────────────┐
+│                                                                                                             │
+│  index.html                                                                                                 │
+│  ├─ fetch /api/arxiv ──────────────► Cloudflare Worker 代理 ──► arXiv API（真实论文数据）                    │
+│  ├─ Transformers.js 加载 bge-small-zh ──► 本地向量化（512 维，同域模型文件，无 CORS 问题）                    │
+│  ├─ JS 余弦相似度检索 ──► top-k 相关论文                                                                     │
+│  └─ fetch api.deepseek.com ────────► 用户自填 key（localStorage）─► 摘要 / 问答生成                          │
+│                                                                                                             │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 文档索引
+**设计要点：**
 
-| 文档 | 位置 | 用途 |
+- **零后端**：arXiv 经 Cloudflare Worker 代理（10 行代码，无密钥）；embedding 在访问者浏览器本地运行；LLM 由用户 key 直连
+- **零成本**：Cloudflare Workers 免费层 + arXiv 免费 API + 浏览器本地计算，月成本 ≈ 0（不含用户自用 LLM 额度）
+- **隐私优先**：无账号、无服务器存储、key 不上传
+
+## 🛠 技术栈
+
+| 层 | 技术 | 说明 |
 |---|---|---|
-| 设计定案 | `DESIGN.md` | 配色/字体/组件/动效权威定义 |
-| PRD | `docs/PRD.md` | 功能需求 + 验收标准 |
-| 任务清单 | `docs/TASKS.md` | 推进依据（T0~T3） |
-| 工具盘点 | `docs/TOOLING.md` | 环境就绪情况 |
-| **完整文档链（含定位/竞品/用户研究/发展路径）** | Obsidian：`论文情报Agent/` | 项目全案叙事，源头文档 |
+| 前端 | 原生 HTML/CSS/JS | 单文件应用，苹果白设计（DESIGN.md 定案） |
+| 数据源 | arXiv API | 免费、无 key、Atom XML 格式 |
+| Embedding | bge-small-zh-v1.5 (ONNX q8) | 512 维，经 Transformers.js 在浏览器运行 |
+| 向量检索 | JS 余弦相似度 | 50 篇论文毫秒级检索 |
+| LLM | DeepSeek API | OpenAI 兼容，浏览器 CORS 直连 |
+| 部署 | Cloudflare Workers + Assets | 静态托管 + 函数代理，`wrangler deploy` 一键发布 |
 
-## 当前状态
+## 📦 本地运行（开发）
 
-- [x] 范围共识冻结（MVP = 领域雷达/结构化摘要/深度问答/文献推荐）
-- [x] 参考标准基线确认（Elicit/paper-qa 等四层对标）
-- [x] PRD v1.0
-- [x] 任务清单 + 工具盘点（环境实测就绪）
-- [x] 设计定案（经典苹果白）
-- [x] 前端原型（Codex 制作 + 两步验收通过，见 index.html）
-- [x] 开发 T0 环境准备（venv/依赖/.env/embedding 全验收通过）
-- [x] 开发 M1 数据管道（arXiv→chunk→bge→ChromaDB，陌生主题 35.6s 入库）
-- [x] 开发 M2 核心功能（雷达/摘要/推荐/界面，陌生主题 23s 出图，10/10 摘要完整）
-- [x] 开发 M3（问答溯源 20/20 通过 / 评测集 / GitHub 仓库 / 部署文档）
-- [x] 上线（Streamlit Community Cloud：https://paper-rad-adzueyihx6gb3swigyfd3g.streamlit.app/）
+### 前置
 
-## 技术栈
+- Python 3.12 + uv（仅数据管道需要）
+- 可选：本地 embedding 模型 `E:\models\bge-small-zh-v1.5`
 
-arXiv API（免费）→ 本地 bge embedding（E:\models 已有）→ ChromaDB → deepseek LLM → Streamlit 界面
+### 方式一：纯浏览器（无需 Python）
 
-## 快速开始（本地）
+```bash
+# 1. 本地起静态服务（模拟 Cloudflare 部署环境）
+cd public
+python -m http.server 8899
+# 2. 浏览器打开 http://127.0.0.1:8899
+# 3. 注意：纯静态服务下 /api/arxiv 代理不可用，请用 wrangler dev（见方式三）
+```
 
-前置：Python 3.12 + uv；本地 embedding 模型 `E:\models\bge-small-zh-v1.5`；deepseek key。
+### 方式二：完整数据管道（Python）
 
 ```bash
 cd E:\paper-radar
-unset PYTHONPATH                      # Windows: Hermes 终端会劫持 venv，必须先清
+unset PYTHONPATH                    # Windows: 清除 Hermes 终端注入的 PYTHONPATH
 uv venv .venv --python 3.12
 uv pip install --index-url https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
 # 配置 .env：DEEPSEEK_API_KEY=sk-...
 export HF_HUB_DISABLE_SYMLINKS_WARNING=1
-uv run streamlit run app/app.py
-```
-
-数据管道（可选，界面内搜索会自动入库）：
-
-```bash
 uv run python -m app.pipeline "retrieval augmented generation" 30 100
 ```
 
-## 架构
-
-```
-arXiv API ──> arxiv_fetcher.py ──> papers ──> embedder.py (chunk 500/100 + bge 512d)
-                                                      │
-                                                      ▼
-user 提问 ──> LLM 翻译成英文 ──> ChromaDB (cosine) ──> top-k chunks
-                                      │
-                                      ▼
-              deepseek LLM ──> 中文回答 + [n] 引用角标 + 来源卡片
-```
-
-## 评测
+### 方式三：本地开发服务器（模拟线上完整环境）
 
 ```bash
-uv run python -m app.run_eval        # 20 问：溯源率/拒绝率自动判定，见 eval/test_set.md
+cd E:\paper-radar
+python dev_server.py 8899    # 静态文件 + /api/arxiv 代理（模拟 Worker）
+# 浏览器打开 http://127.0.0.1:8899
 ```
 
-## 部署（Streamlit Community Cloud）
+## 📁 项目结构
 
-1. 仓库：`github.com/w3118597378-max/paper-radar`
-2. Cloud 绑定仓库 → 主分支，入口 `app/app.py`，`.python-version` 锁 Python 3.12
-3. Secrets 配 `DEEPSEEK_API_KEY`
-4. 公网地址：https://paper-rad-adzueyihx6gb3swigyfd3g.streamlit.app/
-5. 已知坑位：arXiv API 必须用 https（http 会 301 且 urllib 跨协议重定向不稳）；requirements 里 langchain-community 最高 1.0.0a1（用 >=0.4,<1.1）；embedding 模型云端从 ModelScope 下载（首次冷启动较慢）
+```
+paper-radar/
+├── public/
+│   ├── index.html            # 前端应用（浏览器端 RAG 全链路）
+│   └── models/               # bge-small-zh-v1.5 ONNX 模型（同域托管，免 CORS）
+├── worker.js                 # Cloudflare Worker 入口（/api/arxiv 代理）
+├── wrangler.toml             # Cloudflare 部署配置
+├── app/                      # Python 数据管道（本地可选）
+│   ├── arxiv_fetcher.py      #   arXiv 拉取（https + 重试 + 缓存）
+│   ├── embedder.py           #   chunk + bge 向量化 + ChromaDB 入库
+│   ├── radar.py              #   趋势 / 关键词统计
+│   ├── summarizer.py         #   deepseek 四段式摘要
+│   ├── chat.py               #   RAG 问答（LLM 翻译 + 阈值拒答）
+│   └── recommend.py          #   相关文献推荐
+├── docs/
+│   ├── PRD.md                # 产品需求文档
+│   ├── DESIGN.md             # 设计定案（经典苹果白）
+│   ├── TASKS.md              # 任务清单（T0~T3）
+│   ├── DEMO.md               # 演示脚本
+│   └── screenshots/          # README 配图
+├── eval/                     # 20 问评测集 + 自动评测脚本
+└── dev_server.py             # 本地开发服务器
+```
 
-## 功能冻结
+## 📊 评测
 
-M3 结束功能冻结，只修 bug 不增需求；v1.1 backlog：每日推送 / 收藏 / 导出。
+基于 20 个问题（覆盖 3 个已入库主题 + 边界场景）的自动评测：
 
+| 指标 | 结果 |
+|---|---|
+| 溯源率（回答附来源） | **16/16 (100%)** |
+| 拒绝率（无据拒绝） | **3/3 + C4 (100%)** |
+| 检索质量 | 中英语义检索命中 0.84 / 0.88 / 0.78 |
+
+```bash
+uv run python -m app.run_eval   # 自动评测，见 eval/test_set.md
+```
+
+## 🚢 部署
+
+### Cloudflare Workers（当前线上方式）
+
+```bash
+# 前置：wrangler 已登录（wrangler login）
+cd E:\paper-radar
+wrangler deploy
+# 输出：https://paper-radar.w3118597378.workers.dev
+```
+
+push 到 GitHub 后可在 Cloudflare Dashboard 关联仓库自动部署（Pages 模式）。
+
+### 已退役：Streamlit Cloud
+
+历史版本曾部署于 Streamlit Community Cloud（Python 全栈），因「零后端」演进方向退役。仓库保留 `app/` 目录，可随时 `uv run streamlit run app/app.py` 本地运行。
+
+## 📚 文档
+
+| 文档 | 内容 |
+|---|---|
+| [docs/PRD.md](docs/PRD.md) | 产品需求与验收标准 |
+| [DESIGN.md](DESIGN.md) | 设计定案（配色 / 字体 / 组件 / 动效） |
+| [docs/TASKS.md](docs/TASKS.md) | 开发任务清单（T0~T3） |
+| [docs/DEMO.md](docs/DEMO.md) | 演示脚本 |
+| [docs/NFR-ACCEPTANCE.md](docs/NFR-ACCEPTANCE.md) | 非功能验收记录 |
+
+## 🔭 Roadmap
+
+- [x] T0 环境准备 / M1 数据管道 / M2 核心功能 / M3 问答溯源（20/20 评测）
+- [x] 线上部署（Cloudflare Workers，纯浏览器端）
+- [ ] 每日推送订阅（v1.1）
+- [ ] 收藏夹 / 论文标注（v1.1）
+- [ ] 更多 embedding 模型选择（v1.1）
+
+## ⚖️ License
+
+MIT License. See [LICENSE](LICENSE).
+
+---
+
+*Paper Radar · 论文情报 Agent · 引用溯源，绝不编造*

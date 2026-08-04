@@ -22,11 +22,11 @@ Codex / agent 在本项目目录内工作时自动读取本文件。请遵守。
 
 ## 技术栈约定
 
-- 数据源：arXiv API（`http://export.arxiv.org/api/query`，免费无 key，限流约 1 req/3s，需缓存+重试）
+- 数据源：arXiv API（`https://export.arxiv.org/api/query`，免费无 key，限流约 1 req/3s，需缓存+重试；浏览器端经 Cloudflare Worker 代理绕 CORS）
 - Embedding：本地 `E:\models\bge-small-zh-v1.5`（**不要尝试从 HuggingFace 下载，国内不可达；ModelScope 可作后备源**）
-- 向量库：ChromaDB（落盘）
-- LLM：deepseek（`https://api.deepseek.com/v1`，OpenAI 兼容），key 从 `.env` 读（`DEEPSEEK_API_KEY`）
-- 界面：Streamlit（原型阶段为 index.html，最终实现为 Streamlit）
+- 向量库：v1 用 ChromaDB（落盘，Python 管道）；**v2 线上版为纯浏览器端 JS 余弦检索**（零后端）
+- LLM：deepseek（`https://api.deepseek.com/v1`，OpenAI 兼容），v1 key 从 `.env` 读；**v2 线上版由访问者浏览器 localStorage 自填 key 直连（CORS 已验证放行）**
+- 界面：**v2 线上版 = 纯 HTML 前端（`public/index.html`，浏览器端 RAG）**；v1 Python 版 = Streamlit（`app/app.py`，本地可跑）
 
 ## Windows 环境坑位（实测）
 

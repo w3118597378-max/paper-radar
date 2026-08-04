@@ -31,8 +31,8 @@
 
 | 维度 | 标准 |
 |---|---|
-| 部署环境 | GitHub 仓库 + Streamlit Community Cloud，公网 URL 可访问，push 即部署 |
-| 密钥管理 | DEEPSEEK_API_KEY 走 Streamlit Secrets，代码不出现明文 key |
+| 部署环境 | GitHub 仓库 + Cloudflare Workers（`worker.js` + `public/` Assets），公网 URL 可访问，`wrangler deploy` 即部署 |
+| 密钥管理 | 线上版零密钥（LLM key 由访问者浏览器 localStorage 自填直连，不上传）；v1 Python 版 key 走 .env / Secrets，代码不出现明文 key |
 | 启动流程 | 一键启动（文档化），冷启动 ≤ 60 秒 |
 | 数据持久化 | 论文库/向量库落盘，重启不丢 |
 | 稳定性 | 连续运行 24h 不崩；arXiv 限流有重试和缓存 |
@@ -50,6 +50,6 @@
 
 | 决策点 | 决定 | 理由 |
 |---|---|---|
-| 部署目标 | GitHub 仓库 + Streamlit Community Cloud | 零成本、push 即部署、满足可上线标准（GitHub Pages 只能跑静态文件，不行） |
+| 部署目标 | GitHub 仓库 + Cloudflare Workers（最终） | 零成本、免后端维护；演进路径：Streamlit Cloud（v1）→ 纯浏览器端 RAG + Workers 代理（v2，arXiv 官方 API 无 CORS 头，需同域代理） |
 | 每日推送 | 不进 MVP，v1.1 后置 | 引入外部推送渠道会拖慢上线；核心四功能已能证明价值 |
 | 技术栈 | 本地 embedding + deepseek + ChromaDB | 成本红线内；模型走 ModelScope 下载（hf 源不可达） |

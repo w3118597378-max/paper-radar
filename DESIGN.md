@@ -2,7 +2,7 @@
 
 > 状态：✅ 已确认（2026-08-03）｜ 基调：**经典苹果白（Apple 式冷静科研风）**
 > 依据：同类产品调研（Elicit/Consensus/SciSpace 设计语言）+ 用户选定方案 A
-> 用途：Codex 原型实现 + 后续 Streamlit 实现 的统一参照，改动需评审。
+> 用途：Codex 原型实现 + 线上纯 HTML 前端（`public/index.html`）的统一参照，改动需评审。
 
 ## 1. 主题气质
 

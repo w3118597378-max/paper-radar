@@ -1,6 +1,6 @@
 # Paper Radar · 30 秒演示脚本
 
-> 用途：给面试官/导师快速演示，总时长 ≤30 秒。演示环境需已跑过 `uv run python -m app.pipeline "retrieval augmented generation" 30 100`（缓存命中，秒开）。
+> 用途：给面试官/合作方快速演示，总时长 ≤30 秒。环境：线上 https://paper-radar.w3118597378.workers.dev （无需本地环境，浏览器打开即用）。
 
 ## 开场（5s）
 
@@ -8,14 +8,15 @@
 
 ## 演示一：领域雷达（10s）
 
-1. 打开 `streamlit run app/app.py`，输入主题 `retrieval augmented generation`（或点热门标签 RAG）
-2. 指向趋势图：「近 30 天 100 篇论文的数量趋势，一眼看出领域冷热」
-3. 指向关键词云：「高频词是 rag / retrieval / generation，领域热点清晰」
+1. 打开 https://paper-radar.w3118597378.workers.dev ，输入主题 `retrieval augmented generation`（或点热门标签 RAG）
+2. 指向趋势图：「近 30 天 50 篇论文的数量趋势，一眼看出领域冷热」
+3. 指向关键词云：「高频词是 visual / multimodal / mllm，领域热点清晰」
 
 ## 演示二：中文结构化摘要（5s）
 
-1. 展开第一篇论文
-2. 指向四段式摘要：「每篇论文自动生成问题/方法/结论/创新点四段中文摘要，不用读英文原文」
+1. 配置 key（如已配置跳过）：顶部输入 DeepSeek API Key → 保存（key 仅存本浏览器 localStorage，不上传）
+2. 展开第一篇论文
+3. 指向四段式摘要：「每篇论文自动生成问题/方法/结论/创新点四段中文摘要，不用读英文原文」
 
 ## 演示三：深度问答 + 引用溯源（10s）
 
@@ -26,14 +27,12 @@
 
 ## 收尾（5s）
 
-> 「技术栈：arXiv API 免费数据源 + 本地 bge embedding（零 API 费用）+ ChromaDB 向量库 + deepseek 生成，月成本 3~6 元。」
+> 「架构亮点：纯浏览器端 RAG——arXiv 经 Cloudflare Worker 代理（无密钥），bge embedding 在访问者浏览器本地运行，LLM 由用户自己的 key 直连 DeepSeek。零后端、零服务器存储、代码零密钥，部署零成本。」
 
-## 数据准备
+## 本地复现
 
 ```bash
 cd E:\paper-radar
-unset PYTHONPATH
-export HF_HUB_DISABLE_SYMLINKS_WARNING=1
-uv run python -m app.pipeline "retrieval augmented generation" 30 100   # 首次约 40s，之后缓存命中
-uv run streamlit run app/app.py
+python dev_server.py 8899        # 本地模拟线上环境（静态 + /api/arxiv 代理）
+# 浏览器打开 http://127.0.0.1:8899
 ```
